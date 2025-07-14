@@ -1,0 +1,941 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meta-Z Race App</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --color-primary: #5c0cef; /* Morado */
+            --color-secondary: #56b8f6; /* Azul */
+            --color-accent: #A7a5f3; /* Lila */
+            --color-dark: #333;
+            --color-light: #ffffff;
+            --color-text: #444;
+            --font-main: 'Montserrat', sans-serif;
+        }
+
+        body {
+            font-family: var(--font-main);
+            color: var(--color-text);
+            background-color: var(--color-light);
+            margin: 0;
+            padding: 0;
+            line-height: 1.6;
+            overflow-x: hidden; /* Evita scroll horizontal */
+        }
+
+        .app-container {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        /* Header */
+        .main-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 30px;
+            background-color: #d9d9f4;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .main-header .logo-meta-z {
+            height: 150px;
+        }
+
+        .main-header .welcome-message {
+            text-align: center;
+            flex-grow: 1;
+        }
+
+        .main-header .welcome-message h1 {
+            font-size: 1.8em;
+            color: #1d0754;
+            margin: 0;
+        }
+
+        .main-header .welcome-message p {
+            font-size: 1.625em;
+            font-weight: bold;
+            color: #5c0cf0;
+            margin: 5px 0 0;
+        }
+
+        #countdown-timer {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .timer-box {
+            background-color: var(--color-primary);
+            color: var(--color-light);
+            padding: 10px 15px;
+            border-radius: 8px;
+            text-align: center;
+            min-width: 70px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        }
+
+        .timer-box span {
+            display: block;
+        }
+
+        .timer-box .label {
+            font-size: 0.7em;
+            text-transform: uppercase;
+            margin-top: 5px;
+        }
+
+        #days, #hours, #minutes, #seconds {
+            font-size: 2em;
+            font-weight: bold;
+        }
+
+        .hamburger-menu-btn {
+            background: none;
+            border: none;
+            font-size: 30px;
+            cursor: pointer;
+            color: var(--color-primary);
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            padding: 5px;
+        }
+
+        .hamburger-menu-btn .bar {
+            width: 30px;
+            height: 3px;
+            background-color: var(--color-primary);
+            border-radius: 2px;
+            transition: all 0.3s ease;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            right: -300px; /* Oculto por defecto */
+            width: 280px;
+            height: 100%;
+            background-color: var(--color-light);
+            box-shadow: -5px 0 15px rgba(0,0,0,0.1);
+            z-index: 1001;
+            transition: right 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+        }
+
+        .sidebar.open {
+            right: 0;
+        }
+
+        .sidebar-close-btn {
+            background: none;
+            border: none;
+            font-size: 30px;
+            cursor: pointer;
+            color: var(--color-dark);
+            align-self: flex-end;
+            margin-bottom: 20px;
+        }
+
+        .sidebar-nav ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            flex-grow: 1;
+        }
+
+        .sidebar-nav li a {
+            display: block;
+            padding: 15px 20px;
+            color: var(--color-dark);
+            text-decoration: none;
+            font-size: 1.1em;
+            border-bottom: 1px solid #eee;
+            transition: background-color 0.2s ease;
+        }
+
+        .sidebar-nav li a:hover {
+            background-color: #f0f0f0;
+            color: var(--color-primary);
+        }
+
+        .sidebar-footer {
+            text-align: center;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            margin-top: auto;
+        }
+
+        .sidebar-footer img {
+            max-height: 40px;
+        }
+
+        /* Main Content */
+        .main-content {
+            padding: 20px 40px; /* Added padding for better spacing */
+        }
+
+        .main-content section {
+            display: none;
+        }
+
+        /* Dashboard */
+        .dashboard-section {
+            gap: 40px; /* Increased gap */
+            align-items: stretch;
+            max-width: 1200px; /* Centered content */
+            margin: 30px auto; /* Centered content */
+        }
+
+        .dashboard-info-cards-column {
+            display: flex;
+            flex-direction: column;
+            gap: 20px; /* Increased gap */
+            flex: 1; /* Balanced column */
+        }
+
+        .dashboard-info-card {
+            background-color: var(--color-light);
+            border-radius: 12px;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.12); /* Sombra aumentada */
+            padding: 25px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .dashboard-info-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15); /* Sombra aumentada en hover */
+        }
+
+        .dashboard-info-card h2 {
+            color: var(--color-primary);
+            font-size: 1.3em;
+            margin-top: 0;
+            margin-bottom: 8px;
+            font-weight: 700; /* Bold */
+            font-style: italic; /* Italic */
+        }
+
+        .dashboard-info-card p {
+            color: var(--color-text);
+            font-size: 1em; /* Tamaño de texto aumentado */
+        }
+
+        .dashboard-info-card .icon {
+            font-size: 2em;
+            color: var(--color-secondary);
+            margin-bottom: 10px;
+        }
+
+        .dashboard-photo-card {
+            background-color: var(--color-light);
+            border-radius: 12px;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.12); /* Misma sombra que las tarjetas */
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        .dashboard-photo-card img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 12px;
+        }
+
+        /* Team Grid */
+        .team-grid-section {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr); /* 3 columns for web */
+            gap: 25px;
+            margin: 30px auto;
+            max-width: 1200px; /* Consistent max-width */
+            padding: 0 20px; /* Padding for smaller screens */
+        }
+
+        .team-grid-card {
+            background-color: var(--color-light);
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            padding: 25px;
+            text-align: center;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .team-grid-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.12);
+        }
+
+        .team-grid-card .team-logo-grid {
+            max-height: 80px;
+            margin-bottom: 15px;
+        }
+
+        .team-grid-card h3 {
+            color: var(--color-primary);
+            font-size: 1.4em;
+            margin: 10px 0 5px;
+            font-weight: bold;
+            font-style: italic;
+        }
+
+        .team-grid-card p {
+            font-size: 1em;
+            color: var(--color-secondary);
+            font-weight: 600;
+        }
+
+        /* Team Detail Section (from previous project, adapted) */
+        .team-detail-section {
+            display: none; /* Hidden by default */
+            flex-direction: column; /* Apila los elementos verticalmente */
+            max-width: 900px; /* Set max-width for readability */
+            margin: 30px auto; /* Center the section */
+        }
+
+        .team-header {
+            padding: 30px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            display: flex;
+            align-items: center;
+            gap: 25px;
+            color: var(--color-light);
+        }
+
+        .team-header .team-logo {
+            max-height: 100px;
+            max-width: 120px;
+            flex-shrink: 0;
+        }
+
+        .team-header .team-info h1 {
+            font-size: 2.8em;
+            margin: 0;
+            text-shadow: 1px 1px 4px rgba(0,0,0,0.5);
+        }
+
+        .team-header .team-info p {
+            font-size: 1.1em;
+            margin: 0;
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.5);
+        }
+
+        .back-to-teams-btn {
+            background-color: var(--color-light); /* Blanco */
+            color: var(--color-primary); /* Morado */
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9em;
+            margin-top: 20px; /* Margen superior para separarlo */
+            margin-left: auto; /* Centrar el botón */
+            margin-right: auto; /* Centrar el botón */
+            transition: background-color 0.2s ease, box-shadow 0.2s ease;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2); /* Sombra */
+        }
+
+        .back-to-teams-btn:hover {
+            background-color: #f0f0f0;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+        }
+
+        .athlete-table {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: var(--color-light);
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+        }
+
+        .athlete-table th, .athlete-table td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .athlete-table thead {
+            background-color: var(--color-accent);
+            color: var(--color-dark);
+            font-weight: 600;
+        }
+
+        .athlete-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        .athlete-table input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-family: var(--font-main);
+            font-size: 1em;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .athlete-table input:focus {
+            border-color: var(--color-primary);
+            box-shadow: 0 0 0 2px var(--color-accent);
+            outline: none;
+        }
+
+        .team-summary {
+            margin-top: 30px;
+            padding: 20px;
+            background-color: var(--color-accent); /* Mismo color que el encabezado de la tabla */
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+            display: flex;
+            justify-content: space-around;
+            text-align: center;
+            color: var(--color-dark); /* Color de texto oscuro para contraste */
+        }
+
+        .summary-card h3 {
+            color: var(--color-dark); /* Color de texto oscuro */
+            margin-top: 0;
+            font-weight: bold; /* Negrita */
+        }
+
+        .summary-card p {
+            font-size: 2.2em; /* Un poco más grande */
+            font-weight: 700;
+            color: var(--color-dark); /* Color de texto oscuro */
+            margin: 0;
+        }
+
+        .info-section-container {
+            display: flex;
+            flex-direction: column; /* Stack blocks vertically */
+            gap: 15px; /* Reduced gap between info blocks */
+            align-items: center; /* Center info blocks within their column */
+            padding: 0; /* Remove padding as it's handled by parent */
+            max-width: none; /* Remove max-width */
+            margin: 0; /* Remove margin */
+        }
+
+        .cuando-donde-layout-container {
+            display: flex;
+            flex-direction: row; /* Two columns for desktop */
+            gap: 20px; /* Space between the two main columns */
+            justify-content: center; /* Center the entire layout container */
+            align-items: stretch; /* Align items to stretch to fill the height */
+            max-width: 1000px; /* Max width for the entire section */
+            margin: 30px auto; /* Center the section horizontally */
+            padding: 0 20px; /* Padding for responsiveness */
+        }
+
+        .cuando-donde-main-title-block {
+            background-color: var(--color-primary); /* Morado */
+            border-radius: 12px;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.12);
+            padding: 25px;
+            flex: 2; /* Takes more space */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column; /* Stack elements vertically */
+            /* min-height: 300px; Removed min-height */
+        }
+
+        .cuando-donde-main-title-block .info-section-title {
+            margin: 0;
+            font-size: 2.2em; /* Larger font for the main title */
+            background: none; /* Remove background from title itself */
+            box-shadow: none; /* Remove shadow from title itself */
+            color: var(--color-light); /* White text */
+            width: auto; /* Adjust width to content */
+            font-weight: bold; /* Bold */
+            font-style: italic; /* Italic */
+        }
+
+        .map-preview-image {
+            max-width: 90%;
+            height: auto;
+            border-radius: 8px;
+            margin-top: 20px;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        }
+
+        .map-button {
+            background-color: var(--color-light); /* Blanco */
+            color: var(--color-primary); /* Morado */
+            padding: 12px 25px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: bold;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            display: inline-block; /* Allow padding and margin */
+            margin-top: 10px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+
+        .map-button:hover {
+            background-color: #f0f0f0; /* Slightly darker white */
+            color: #4a0a9e; /* Slightly darker purple */
+            transform: translateY(-2px);
+        }
+
+        .info-block {
+            background-color: var(--color-light);
+            border-radius: 12px;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.12);
+            padding: 25px;
+            width: 100%; /* Full width within its column */
+            max-width: 300px; /* Max width for individual info blocks */
+            text-align: center;
+        }
+
+        /* Responsive adjustments for the new layout */
+        @media (max-width: 768px) {
+            .cuando-donde-layout-container {
+                flex-direction: column; /* Stack columns vertically on smaller screens */
+                align-items: center; /* Center items when stacked */
+            }
+
+            .cuando-donde-main-title-block {
+                min-height: auto; /* Remove min-height when stacked */
+                width: 100%;
+                max-width: 600px; /* Limit width for title block */
+            }
+
+            .cuando-donde-main-title-block .info-section-title {
+                font-size: 2em; /* Adjust font size for smaller screens */
+            }
+
+            .info-section-container {
+                width: 100%;
+                max-width: 600px; /* Limit width for info blocks container */
+            }
+        }
+
+        .info-block h3 {
+            color: var(--color-primary);
+            font-size: 1.5em;
+            margin-top: 0;
+            font-weight: bold; /* Bold */
+            font-style: italic; /* Italic */
+        }
+
+        .info-block p {
+            font-size: 1.1em;
+            line-height: 1.7;
+        }
+
+        /* Responsive */
+        @media (max-width: 992px) { /* Adjusted breakpoint for tablets */
+            .dashboard-section {
+                flex-direction: column; /* Stack columns */
+                margin: 20px auto;
+            }
+            .team-grid-section {
+                grid-template-columns: repeat(2, 1fr); /* 2 columns for tablet */
+            }
+        }
+
+        @media (max-width: 768px) {
+            .main-header .welcome-message h1 { font-size: 1.4em; }
+            .main-header .welcome-message p { font-size: 0.9em; }
+            .team-grid-section { grid-template-columns: 1fr; /* 1 column for mobile */ }
+        }
+
+        @media (max-width: 480px) {
+            .main-header { padding: 10px 15px; }
+            .main-header .logo-meta-z { height: 40px; }
+            .hamburger-menu-btn { font-size: 24px; }
+            .main-content { padding: 15px; }
+            .dashboard-info-card { padding: 20px; }
+            .dashboard-info-card h2 { font-size: 1.2em; }
+            .dashboard-info-card .icon { font-size: 2.5em; }
+            .team-grid-card { padding: 15px; }
+            .team-grid-card .team-logo-grid { max-height: 60px; }
+            .team-grid-card h3 { font-size: 1.1em; }
+            .team-header { flex-direction: column; text-align: center; }
+            .team-header .team-info h1 { font-size: 2em; }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <header class="main-header">
+            <img src="Logo_MetaZ_2.png" alt="Meta-Z Logo" class="logo-meta-z">
+            <div class="welcome-message">
+                <h1><b><i>🏁 ¡LLEGO LA HORA DE CORRER! 🏁</i></b></h1>
+                <p>Bienvenidos a la página de nuestra carrera</p>
+                <div id="countdown-timer">
+                    <div class="timer-box">
+                        <span id="days">00</span>
+                        <span class="label">Días</span>
+                    </div>
+                    <div class="timer-box">
+                        <span id="hours">00</span>
+                        <span class="label">Horas</span>
+                    </div>
+                    <div class="timer-box">
+                        <span id="minutes">00</span>
+                        <span class="label">Minutos</span>
+                    </div>
+                    <div class="timer-box">
+                        <span id="seconds">00</span>
+                        <span class="label">Segundos</span>
+                    </div>
+                </div>
+            </div>
+            <button class="hamburger-menu-btn" id="hamburger-menu-btn">
+                <span class="bar"></span>
+                <span class="bar"></span>
+                <span class="bar"></span>
+            </button>
+        </header>
+
+        <nav class="sidebar" id="sidebar">
+            <button class="sidebar-close-btn" id="sidebar-close-btn">&times;</button>
+            <div class="sidebar-nav">
+                <ul>
+                    <li><a href="#dashboard" data-section="dashboard">INICIO</a></li>
+                    <li><a href="#cuando-donde" data-section="cuando-donde">¿CUÁNDO Y DÓNDE?</a></li>
+                    <li><a href="#categorias-premiadas" data-section="categorias-premiadas">CATEGORÍAS PREMIADAS</a></li>
+                    <li><a href="#los-equipos" data-section="team-grid">LOS EQUIPOS</a></li>
+                </ul>
+            </div>
+            <div class="sidebar-footer">
+                <img src="logo_zalvadoracolor_2.png" alt="Zalvadora Logo">
+            </div>
+        </nav>
+
+        <main class="main-content" id="main-content">
+            <!-- Dashboard Section -->
+            <section id="dashboard" class="dashboard-section active">
+                <div class="dashboard-info-cards-column">
+                    <div class="dashboard-info-card" data-section-target="cuando-donde">
+                        <span class="icon">&#128197;</span>
+                        <h2>¿CUÁNDO Y DÓNDE?</h2>
+                        <p>Detalles del evento</p>
+                    </div>
+                    <div class="dashboard-info-card" data-section-target="categorias-premiadas">
+                        <span class="icon">&#127942;</span>
+                        <h2>CATEGORÍAS PREMIADAS</h2>
+                        <p>Conoce los premios</p>
+                    </div>
+                    <div class="dashboard-info-card" data-section-target="team-grid">
+                        <span class="icon">&#127939;</span>
+                        <h2>LOS EQUIPOS</h2>
+                        <p>Gestiona y visualiza</p>
+                    </div>
+                </div>
+                <div class="dashboard-photo-card">
+                    <img src="4126.jpg" alt="Corredores Meta-Z">
+                </div>
+            </section>
+
+            <!-- Team Grid Section -->
+            <section id="team-grid" class="team-grid-section">
+                <!-- Team cards will be injected here by JavaScript -->
+            </section>
+
+            <!-- Team Detail Sections (hidden by default) -->
+            <!-- These will be dynamically created or shown based on team-grid clicks -->
+
+            <!-- Other Info Sections (placeholders for now) -->
+            <section id="cuando-donde" class="info-section">
+                <div class="cuando-donde-layout-container">
+                    <div class="cuando-donde-main-title-block">
+                        <h2 class="info-section-title">🗓️📍 ¿CUÁNDO Y DÓNDE?</h2>
+                        <img src="ParqueNovios.png" alt="Parque de los Novios" class="map-preview-image">
+                        <a href="https://www.google.com/maps/place/Parque+de+los+Novios/@4.6547573,-74.0837951,17z/data=!3m1!4b1!4m6!3m5!1s0x8e3f9bb3e0cd9b97:0x6e58d26b08d3087d!8m2!3d4.6547573!4d-74.0812202!16s%2Fg%2F1hb_h2q6l?entry=ttu&g_ep=EgoyMDI1MDcwOC4wIKXMDSoASAFQAw%3D%3D" target="_blank" class="map-button">Abrir Mapa</a>
+                    </div>
+                    <div class="info-section-container">
+                        <div class="info-block">
+                            <h3>🗓️ FECHA Y HORA</h3>
+                            <p>Viernes 18 de julio<br>De 1:00 p.m. a 5:00 p.m.</p>
+                        </div>
+                        <div class="info-block">
+                            <h3>📍 LUGAR</h3>
+                            <p>PARQUE DEL LAGO (o de los novios)</p>
+                        </div>
+                        <div class="info-block">
+                            <h3>❗ ¡IMPORTANTE!</h3>
+                            <p>La carrera se realizará en horario laboral, por lo tanto, debes participar. Esto hace parte de nuestras actividades institucionales.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="categorias-premiadas" class="info-section">
+                <div class="cuando-donde-layout-container">
+                    <div class="cuando-donde-main-title-block">
+                        <h2 class="info-section-title">🏆 CATEGORÍAS PREMIADAS</h2>
+                    </div>
+                    <div class="info-section-container">
+                        <div class="info-block">
+                            <h3>⚡ VELOCIDAD</h3>
+                            <p>El equipo más rápido ganará un día libre y un bono de $30mil en Crepes & Waffles.</p>
+                        </div>
+                        <div class="info-block">
+                            <h3>🎨 CREATIVIDAD</h3>
+                            <p>Los equipos más originales en cuanto a disfraces, himno, símbolos, identidad, etc. ganarán medio día libre y un bono de $30mil C&W.</p>
+                        </div>
+                        <div class="info-block">
+                            <h3>💪 ESFUERZO</h3>
+                            <p>Se reconocerá al equipo que demuestre constancia, espíritu solidario, compañerismo y compromiso durante el recorrido Cada integrante recibirá medio día libre y un bono de $30mil C&W.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const teamsData = [
+                { leader: 'Tito Andrés Alfonso', name: 'Team PARRA´n Deros', logo: 'Equipo_Team1.png', bannerColor: '#f39c12', members: ['Daniela Rengifo Rodriguez', 'Brandon González Toro', 'Jenny Marcela Rincon Bermudez', 'Tulio Andres Alfonso Parra', 'Carlos Eduardo Tejada Guevara', 'María Alejandra Ramírez Moreno'] },
+                                { leader: 'Nicolás León', name: 'Bubba Runners', logo: 'Equipo_Bubba1.png', bannerColor: '#e74c3c', members: ['Deisy Janneth Bautista Serrano', 'NATALIA QUIROS FRANCO', 'David Iván Fadul Carballo', 'Nicolas León', 'Daniel Castro', 'Carlos Arturo Cuervo Cuervo'] },
+                { leader: 'Miguel Angel Piedrahita Briñez', name: 'Scorm is Dead', logo: 'Equipo_Scorm1.png', members: ['Gina Yanitza Plata Gomez', 'David Steven Valencia Novoa', 'Miguel Angel Piedrahita Briñez', 'Katherine Galindo', 'Sebastían García Macías', 'Horacio Reyes'] },
+                { leader: 'Marcela Medina', name: 'Zeis FuerZas - un Zolo CoraZón', logo: 'Equipo_Zeiz1.png', bannerColor: '#c0392b', members: ['Marcela Medina', 'Dany Jelissa Matiz Vargas', 'Maritza Suarez', 'María Alejandra Vargas', 'Yenny Paola Barragan Cediel', 'Milena Villanueva'] },
+                { leader: 'José Rafael Pereira Droz', name: 'Los Todo Bien Todo Mal', logo: 'Equipo_TodoBien1.png', members: ['José Rafael Pereira Droz', 'Sarah Yannella Ariza Mosquera', 'Juan David Rodríguez Cabrera', 'Maria Alejandra Fomeque Quinayaz', 'Paola Poveda Alejo', 'Sandro Giovanny Rodríguez Arévalo'] },
+                { leader: 'Ivan Dario Colmenares', name: 'Zeta Flow', logo: 'Equipo_ZetaFlow1.png', members: ['Ivan Dario Colmenares', 'Juan Pablo Arnedo Ramon', 'Jhonatan Javier Malaver Alfonso', 'Edwin Montes', 'Christian Arturo Ramos Lozano', 'Pedro Sanabria'] },
+                { leader: 'Fabián Devia', name: 'Run For Your Life', logo: 'Equipo_SinNombre1.png', members: ['María Isabel Camacho', 'Laura Patricia Gómez Daza', 'Laura Chaparro', 'Karen Rodriguez', 'Fabian Devia', 'Paula Maria Suarez Bulla'] },
+                { leader: 'Carlos Andrés Pastrán', name: 'Encalambrados al Límite', logo: 'Equipo_Encalambrados1.png', members: ['Carlos Andrés Pastrán', 'Carlos Arturo Holguín Alarcón', 'Germán Arturo Suárez Martínez', 'Yenniffer Quintero', 'Maria del Carmen Riaño Espinel', 'Daniel Hernández León'] },
+                { leader: 'Camilo Leguízamo', name: 'Rocky y sus Balboaz', logo: 'Equipo_Rocky1.png', bannerColor: '#8e44ad', members: ['Camilo Leguizamo', 'Johanna Alexandra Zambrano forero', 'Luz Stefanie Cufiño Bernal', 'Marlly Lorena Ocampo Hoyos', 'Sandra Viviana Lopez Reyes', 'Angela Cristina Silva León'] }
+            ];
+
+            const hamburgerBtn = document.getElementById('hamburger-menu-btn');
+            const sidebar = document.getElementById('sidebar');
+            const sidebarCloseBtn = document.getElementById('sidebar-close-btn');
+            const mainContent = document.getElementById('main-content');
+            const sidebarNav = document.querySelector('.sidebar-nav');
+
+            // Toggle sidebar
+            hamburgerBtn.addEventListener('click', () => {
+                sidebar.classList.toggle('open');
+            });
+
+            sidebarCloseBtn.addEventListener('click', () => {
+                sidebar.classList.remove('open');
+            });
+
+            // Section navigation
+            // Section navigation
+            const sections = document.querySelectorAll('main section');
+
+            function showSection(id) {
+                sections.forEach(section => {
+                    section.style.display = 'none';
+                });
+                document.getElementById(id).style.display = 'flex'; // Use flex for dashboard and grid
+                if (id === 'team-grid') {
+                    document.getElementById(id).style.display = 'grid'; // Specific for grid
+                }
+            }
+
+            sidebarNav.addEventListener('click', (e) => {
+                if (e.target.tagName === 'A') {
+                    e.preventDefault();
+                    const sectionId = e.target.getAttribute('data-section');
+                    showSection(sectionId);
+                    sidebar.classList.remove('open'); // Close sidebar after selection
+                }
+            });
+
+            // Dashboard info card navigation
+            document.querySelectorAll('.dashboard-info-card').forEach(card => {
+                card.addEventListener('click', () => {
+                    const targetSectionId = card.getAttribute('data-section-target');
+                    showSection(targetSectionId);
+                });
+            });
+
+            // Render Team Grid
+            const teamGridSection = document.getElementById('team-grid');
+            teamsData.forEach((team, index) => {
+                const teamId = `team-detail-${index}`;
+                const teamName = team.name || `Equipo ${team.leader.split(' ')[0]}`;
+                const teamLogo = team.logo || 'placeholder_logo.png'; // Fallback logo
+
+                const teamCard = document.createElement('div');
+                teamCard.classList.add('team-grid-card');
+                teamCard.setAttribute('data-team-id', teamId);
+                teamCard.innerHTML = `
+                    <img src="${teamLogo}" alt="${teamName} Logo" class="team-logo-grid">
+                    <h3>${teamName}</h3>
+                    <p class="team-total-distance">Distancia Total: 0.00 km</p>
+                    <p class="team-total-time">Tiempo Total: 00:00:00</p>
+                `;
+                teamGridSection.appendChild(teamCard);
+
+                // Create team detail section (hidden by default)
+                const detailSection = document.createElement('section');
+                detailSection.id = teamId;
+                detailSection.classList.add('team-detail-section');
+                detailSection.innerHTML = `
+                    <div class="team-header" style="background-color: ${team.bannerColor || '#5c0cef'};">
+                        <img src="${teamLogo}" alt="${teamName} Logo" class="team-logo">
+                        <div class="team-info">
+                            <h1>${teamName}</h1>
+                            <p>Liderado por: ${team.leader}</p>
+                        </div>
+                    </div>
+                    <table class="athlete-table">
+                        <thead>
+                            <tr>
+                                <th>Atleta</th>
+                                <th>Distancia (km)</th>
+                                <th>Tiempo (HH:MM:SS)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${team.members.map(member => `
+                                <tr>
+                                    <td>${member}</td>
+                                    <td><input type="number" class="distance-input" placeholder="0.00" step="0.01"></td>
+                                    <td><input type="text" class="time-input" placeholder="00:00:00"></td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                    <div class="team-summary">
+                        <div class="summary-card">
+                            <h3>Distancia Total</h3>
+                            <p class="total-distance">0.00 km</p>
+                        </div>
+                        <div class="summary-card">
+                            <h3>Tiempo Total</h3>
+                            <p class="total-time">00:00:00</p>
+                        </div>
+                    </div>
+                    <button class="back-to-teams-btn">Volver a Equipos</button>
+                `;
+                mainContent.appendChild(detailSection);
+            });
+
+            // Team grid card click to show detail
+            teamGridSection.addEventListener('click', (e) => {
+                const card = e.target.closest('.team-grid-card');
+                if (card) {
+                    const teamId = card.getAttribute('data-team-id');
+                    showSection(teamId);
+                }
+            });
+
+            // Back to teams button click
+            mainContent.addEventListener('click', (e) => {
+                if (e.target.classList.contains('back-to-teams-btn')) {
+                    const currentTeamDetailSection = e.target.closest('.team-detail-section');
+                    if (currentTeamDetailSection) {
+                        currentTeamDetailSection.style.display = 'none'; // Oculta explícitamente la sección de detalle
+                    }
+                    showSection('team-grid'); // Muestra la cuadrícula de equipos
+                }
+            });
+
+            // Calculation logic (re-used from previous project)
+            mainContent.addEventListener('input', (e) => {
+                if (e.target.classList.contains('distance-input') || e.target.classList.contains('time-input')) {
+                    const teamSection = e.target.closest('.team-detail-section');
+                    if (teamSection) {
+                        updateTeamTotals(teamSection);
+                    }
+                }
+            });
+
+            function updateTeamTotals(teamSection) {
+                let totalDistance = 0;
+                let totalSeconds = 0;
+
+                teamSection.querySelectorAll('.distance-input').forEach(input => {
+                    totalDistance += parseFloat(input.value) || 0;
+                });
+
+                teamSection.querySelectorAll('.time-input').forEach(input => {
+                    const timeParts = input.value.split(':');
+                    const hours = parseInt(timeParts[0]) || 0;
+                    const minutes = parseInt(timeParts[1]) || 0;
+                    const seconds = parseInt(timeParts[2]) || 0;
+                    totalSeconds += (hours * 3600) + (minutes * 60) + seconds;
+                });
+
+                teamSection.querySelector('.total-distance').textContent = `${totalDistance.toFixed(2)} km`;
+                teamSection.querySelector('.total-time').textContent = formatTime(totalSeconds);
+
+                // Update total time and distance in grid card as well
+                const teamId = teamSection.id;
+                const gridCardTime = document.querySelector(`.team-grid-card[data-team-id="${teamId}"] .team-total-time`);
+                if (gridCardTime) {
+                    gridCardTime.textContent = `Tiempo Total: ${formatTime(totalSeconds)}`;
+                }
+                const gridCardDistance = document.querySelector(`.team-grid-card[data-team-id="${teamId}"] .team-total-distance`);
+                if (gridCardDistance) {
+                    gridCardDistance.textContent = `Distancia Total: ${totalDistance.toFixed(2)} km`;
+                }
+            }
+
+            function formatTime(totalSeconds) {
+                const hours = Math.floor(totalSeconds / 3600);
+                const minutes = Math.floor((totalSeconds % 3600) / 60);
+                const seconds = totalSeconds % 60;
+                return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+            }
+
+            // Initial setup: show dashboard and hide others
+            showSection('dashboard');
+
+            // Countdown Timer
+            const countdownDate = new Date('July 18, 2025 14:00:00').getTime();
+
+            const countdownFunction = setInterval(() => {
+                const now = new Date().getTime();
+                const distance = countdownDate - now;
+
+                const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+                const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+                document.getElementById('days').innerText = String(days).padStart(2, '0');
+                document.getElementById('hours').innerText = String(hours).padStart(2, '0');
+                document.getElementById('minutes').innerText = String(minutes).padStart(2, '0');
+                document.getElementById('seconds').innerText = String(seconds).padStart(2, '0');
+
+                if (distance < 0) {
+                    clearInterval(countdownFunction);
+                    document.getElementById('countdown-timer').innerHTML = "¡La carrera ha comenzado!";
+                }
+            }, 1000);
+        });
+    </script>
+</body>
+</html>
